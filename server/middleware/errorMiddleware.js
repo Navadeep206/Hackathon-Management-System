@@ -18,7 +18,7 @@ export const errorHandler = (err, req, res, next) => {
     return next(err);
   }
 
-  let statusCode = err.statusCode || 500;
+  let statusCode = err.statusCode || (res.statusCode !== 200 ? res.statusCode : 500);
   let message = err.message || "Internal Server Error";
 
   // Mongoose Bad ObjectId (CastError)

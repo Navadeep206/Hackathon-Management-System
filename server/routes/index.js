@@ -1,7 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import authRoutes from './authRoutes.js';
 
 const router = express.Router();
+
+// Mount Auth routes
+router.use('/auth', authRoutes);
 
 /**
  * @route   GET /api
