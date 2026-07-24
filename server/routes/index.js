@@ -4,6 +4,7 @@ import authRoutes from './authRoutes.js';
 import hackathonRoutes from './hackathonRoutes.js';
 import registrationRoutes from './registrationRoutes.js';
 import teamRoutes from './teamRoutes.js';
+import submissionRoutes from './submissionRoutes.js';
 
 const router = express.Router();
 
@@ -18,6 +19,9 @@ router.use('/registrations', registrationRoutes);
 
 // Mount Team routes
 router.use('/teams', teamRoutes);
+
+// Mount Submission routes
+router.use('/submissions', submissionRoutes);
 
 /**
  * @route   GET /api
