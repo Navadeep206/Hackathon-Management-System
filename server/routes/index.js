@@ -1,11 +1,15 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import authRoutes from './authRoutes.js';
+import hackathonRoutes from './hackathonRoutes.js';
 
 const router = express.Router();
 
 // Mount Auth routes
 router.use('/auth', authRoutes);
+
+// Mount Hackathon routes
+router.use('/hackathons', hackathonRoutes);
 
 /**
  * @route   GET /api
