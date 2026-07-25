@@ -8,6 +8,7 @@ import submissionRoutes from './submissionRoutes.js';
 import judgeRoutes from './judgeRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import leaderboardRoutes from './leaderboardRoutes.js';
+import dashboardRoutes from './dashboardRoutes.js';
 
 const router = express.Router();
 
@@ -34,6 +35,9 @@ router.use('/reviews', reviewRoutes);
 
 // Mount Leaderboard routes
 router.use('/leaderboard', leaderboardRoutes);
+
+// Mount Dashboard routes
+router.use('/dashboard', dashboardRoutes);
 
 /**
  * @route   GET /api
