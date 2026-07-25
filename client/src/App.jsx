@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import Leaderboard from './pages/Leaderboard';
 import NotFound from './pages/NotFound';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="leaderboard/:hackathonId" element={<Leaderboard />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>

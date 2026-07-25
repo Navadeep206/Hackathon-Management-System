@@ -7,6 +7,7 @@ import teamRoutes from './teamRoutes.js';
 import submissionRoutes from './submissionRoutes.js';
 import judgeRoutes from './judgeRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
+import leaderboardRoutes from './leaderboardRoutes.js';
 
 const router = express.Router();
 
@@ -30,6 +31,9 @@ router.use('/judges', judgeRoutes);
 
 // Mount Review routes
 router.use('/reviews', reviewRoutes);
+
+// Mount Leaderboard routes
+router.use('/leaderboard', leaderboardRoutes);
 
 /**
  * @route   GET /api
