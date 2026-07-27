@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../services/api';
 import { FaUsers, FaUserTie, FaUserGraduate, FaGavel, FaTrophy, FaLayerGroup, FaFileSignature, FaFileUpload, FaClipboardCheck, FaUserCog, FaFolderOpen, FaArrowRight } from 'react-icons/fa';
 import StatCard from '../components/dashboard/StatCard';
 import DashboardCard from '../components/dashboard/DashboardCard';
@@ -13,13 +13,10 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const token = localStorage.getItem('token');
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await axios.get('http://localhost:5099/api/dashboard/admin', { headers });
+        const res = await api.get('/dashboard/admin');
         if (res.data?.success) {
           setData(res.data);
         }

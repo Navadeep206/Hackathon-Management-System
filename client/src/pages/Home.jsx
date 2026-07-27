@@ -205,7 +205,7 @@ const Home = () => {
                     <div className="relative h-44 bg-gray-100 flex-shrink-0">
                       {h.bannerImage ? (
                         <img
-                          src={`http://localhost:5099${h.bannerImage}`}
+                          src={`http://127.0.0.1:5099${h.bannerImage}`}
                           alt={h.title}
                           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
