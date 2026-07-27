@@ -486,6 +486,9 @@ export const getAllSubmissions = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: submissions.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     submissions,
   });
 });

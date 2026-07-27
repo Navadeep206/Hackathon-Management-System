@@ -92,6 +92,18 @@ class MockRegistrationQuery {
     return this;
   }
 
+  sort() {
+    return this;
+  }
+
+  skip() {
+    return this;
+  }
+
+  limit() {
+    return this;
+  }
+
   then(resolve) {
     const docs = this.results.map((item) => {
       const doc = new Registration(item);
@@ -132,6 +144,24 @@ Registration.find = function (queryObj) {
     filtered = filtered.filter((r) => r.status === queryObj.status);
   }
   return new MockRegistrationQuery(filtered);
+};
+
+Registration.countDocuments = async function (queryObj) {
+  let filtered = [...testRegistrations];
+  if (queryObj.participant) {
+    filtered = filtered.filter(
+      (r) => String(r.participant) === String(queryObj.participant)
+    );
+  }
+  if (queryObj.hackathon) {
+    filtered = filtered.filter(
+      (r) => String(r.hackathon) === String(queryObj.hackathon)
+    );
+  }
+  if (queryObj.status) {
+    filtered = filtered.filter((r) => r.status === queryObj.status);
+  }
+  return filtered.length;
 };
 
 Registration.findOne = function (queryObj) {

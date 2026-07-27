@@ -158,6 +158,9 @@ export const getAllTeams = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: teams.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     teams,
   });
 });

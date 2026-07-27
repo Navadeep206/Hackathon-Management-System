@@ -107,6 +107,18 @@ class MockTeamQuery {
     return this;
   }
 
+  sort() {
+    return this;
+  }
+
+  skip() {
+    return this;
+  }
+
+  limit() {
+    return this;
+  }
+
   then(resolve) {
     const docs = this.results.map((item) => {
       const doc = new Team(item);
@@ -160,6 +172,36 @@ Team.find = function (queryObj) {
   }
 
   return new MockTeamQuery(filtered);
+};
+
+Team.countDocuments = async function (queryObj) {
+  let filtered = [...testTeams];
+
+  if (queryObj.$or) {
+    const leaderId = queryObj.$or[0].leader;
+    const memberId = queryObj.$or[1].members;
+    filtered = filtered.filter(
+      (t) =>
+        String(t.leader) === String(leaderId) ||
+        t.members.some((m) => String(m) === String(memberId))
+    );
+  }
+
+  if (queryObj.hackathon) {
+    filtered = filtered.filter(
+      (t) => String(t.hackathon) === String(queryObj.hackathon)
+    );
+  }
+
+  if (queryObj.status) {
+    if (queryObj.status.$ne) {
+      filtered = filtered.filter((t) => t.status !== queryObj.status.$ne);
+    } else {
+      filtered = filtered.filter((t) => t.status === queryObj.status);
+    }
+  }
+
+  return filtered.length;
 };
 
 Team.findOne = function (queryObj) {

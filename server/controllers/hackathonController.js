@@ -144,6 +144,9 @@ export const getAllHackathons = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: hackathons.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     hackathons,
   });
 });

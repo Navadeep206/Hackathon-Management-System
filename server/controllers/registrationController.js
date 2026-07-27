@@ -146,6 +146,9 @@ export const getMyRegistrations = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: registrations.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     registrations,
   });
 });
@@ -204,6 +207,9 @@ export const getHackathonRegistrations = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: registrations.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     registrations,
   });
 });

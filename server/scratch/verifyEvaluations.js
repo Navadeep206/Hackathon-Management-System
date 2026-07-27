@@ -261,6 +261,15 @@ class MockReviewQuery {
     this.populatePaths.push(path);
     return this;
   }
+  sort() {
+    return this;
+  }
+  skip() {
+    return this;
+  }
+  limit() {
+    return this;
+  }
   then(resolve) {
     const docs = this.results.map((item) => {
       const doc = new Review(item);
@@ -298,6 +307,20 @@ Review.find = function (query) {
     filtered = filtered.filter((r) => String(r.hackathon) === String(query.hackathon));
   }
   return new MockReviewQuery(filtered);
+};
+
+Review.countDocuments = async function (query) {
+  let filtered = [...testReviews];
+  if (query.submission) {
+    filtered = filtered.filter((r) => String(r.submission) === String(query.submission));
+  }
+  if (query.judge) {
+    filtered = filtered.filter((r) => String(r.judge) === String(query.judge));
+  }
+  if (query.hackathon) {
+    filtered = filtered.filter((r) => String(r.hackathon) === String(query.hackathon));
+  }
+  return filtered.length;
 };
 
 Review.findById = function (id) {

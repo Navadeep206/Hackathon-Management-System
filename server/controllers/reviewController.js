@@ -226,6 +226,9 @@ export const getSubmissionReviews = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: reviews.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     reviews,
   });
 });
@@ -256,6 +259,9 @@ export const getMyReviews = asyncHandler(async (req, res) => {
     page: pageNum,
     totalPages: Math.ceil(totalRecords / limitNum),
     totalRecords,
+    count: reviews.length,
+    total: totalRecords,
+    pages: Math.ceil(totalRecords / limitNum),
     reviews,
   });
 });
