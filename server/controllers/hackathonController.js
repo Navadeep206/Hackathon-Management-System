@@ -117,6 +117,12 @@ export const getAllHackathons = asyncHandler(async (req, res) => {
     sortQuery = { registrationDeadline: 1 };
   } else if (sort === 'startDate') {
     sortQuery = { startDate: 1 };
+  } else if (sort === 'oldest') {
+    sortQuery = { createdAt: 1 };
+  } else if (sort === 'alphabetical') {
+    sortQuery = { title: 1 };
+  } else if (sort === 'highestScore' || sort === 'prizePool') {
+    sortQuery = { prizePool: -1 };
   } else if (sort === 'latest') {
     sortQuery = { createdAt: -1 };
   }
@@ -126,7 +132,7 @@ export const getAllHackathons = asyncHandler(async (req, res) => {
   const limitNum = Math.max(1, parseInt(limit) || 10);
   const skip = (pageNum - 1) * limitNum;
 
-  const total = await Hackathon.countDocuments(queryObj);
+  const totalRecords = await Hackathon.countDocuments(queryObj);
   const hackathons = await Hackathon.find(queryObj)
     .sort(sortQuery)
     .skip(skip)
@@ -135,10 +141,9 @@ export const getAllHackathons = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    count: hackathons.length,
-    total,
     page: pageNum,
-    pages: Math.ceil(total / limitNum),
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
     hackathons,
   });
 });

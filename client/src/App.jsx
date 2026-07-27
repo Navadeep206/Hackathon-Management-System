@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Leaderboard from './pages/Leaderboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUserManagement from './pages/AdminUserManagement';
 import OrganizerDashboard from './pages/OrganizerDashboard';
 import ParticipantDashboard from './pages/ParticipantDashboard';
 import JudgeDashboard from './pages/JudgeDashboard';
@@ -22,6 +23,7 @@ function App() {
           <Route path="signup" element={<Signup />} />
           <Route path="leaderboard/:hackathonId" element={<Leaderboard />} />
           <Route path="admin/dashboard" element={<AdminDashboard />} />
+          <Route path="admin/users" element={<AdminUserManagement />} />
           <Route path="organizer/dashboard" element={<OrganizerDashboard />} />
           <Route path="participant/dashboard" element={<ParticipantDashboard />} />
           <Route path="judge/dashboard" element={<JudgeDashboard />} />

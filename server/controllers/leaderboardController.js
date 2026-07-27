@@ -225,6 +225,7 @@ export const publishResults = asyncHandler(async (req, res) => {
  */
 export const getLeaderboard = asyncHandler(async (req, res) => {
   const { hackathonId } = req.params;
+  const { filter } = req.query;
 
   if (!mongoose.Types.ObjectId.isValid(hackathonId)) {
     res.status(400);
@@ -238,8 +239,16 @@ export const getLeaderboard = asyncHandler(async (req, res) => {
     throw new Error('Hackathon not found');
   }
 
-  // 2. Check if leaderboard has been generated
-  const leaderboardEntries = await Leaderboard.find({ hackathon: hackathonId })
+  // 2. Build Query with Filters
+  const queryObj = { hackathon: hackathonId };
+  if (filter === 'Winners') {
+    queryObj.isWinner = true;
+  } else if (filter === 'Top10') {
+    queryObj.rank = { $lte: 10 };
+  }
+
+  // Check if leaderboard has been generated
+  const leaderboardEntries = await Leaderboard.find(queryObj)
     .sort({ rank: 1 })
     .populate('team', 'teamName')
     .populate('submission', 'projectName');

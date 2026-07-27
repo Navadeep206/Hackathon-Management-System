@@ -105,6 +105,64 @@ export const getMyTeam = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @desc    Get all teams (with search, filter, sort, pagination)
+ * @route   GET /api/teams
+ * @access  Private (Authenticated users)
+ */
+export const getAllTeams = asyncHandler(async (req, res) => {
+  const { search, status, sort, page = 1, limit = 10, hackathon } = req.query;
+
+  const queryObj = {};
+
+  // Search by teamName
+  if (search) {
+    queryObj.teamName = { $regex: search, $options: 'i' };
+  }
+
+  // Filters
+  if (status) {
+    queryObj.status = status;
+  } else {
+    // Exclude disbanded teams by default unless requested
+    queryObj.status = { $ne: 'Disbanded' };
+  }
+
+  if (hackathon) {
+    queryObj.hackathon = hackathon;
+  }
+
+  // Sorting
+  let sortQuery = { createdAt: -1 }; // default: latest
+  if (sort === 'oldest') {
+    sortQuery = { createdAt: 1 };
+  } else if (sort === 'alphabetical') {
+    sortQuery = { teamName: 1 };
+  }
+
+  // Pagination
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalRecords = await Team.countDocuments(queryObj);
+  const teams = await Team.find(queryObj)
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limitNum)
+    .populate('hackathon', 'title theme mode status')
+    .populate('leader', 'name email role')
+    .populate('members', 'name email role');
+
+  res.status(200).json({
+    success: true,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
+    teams,
+  });
+});
+
+/**
  * @desc    Get detailed view of a team
  * @route   GET /api/teams/:teamId
  * @access  Private (Members, Hackathon Organizer, Admin)

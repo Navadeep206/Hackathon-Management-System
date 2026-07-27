@@ -92,7 +92,7 @@ const AdminDashboard = () => {
             title="Manage Users"
             description="View directory profiles, edit credential details, and block or unblock users."
             actionText="Go to User Manager"
-            onClick={() => alert('Redirecting to Admin User Control Panel...')}
+            onClick={() => navigate('/admin/users')}
           />
           <QuickActionCard
             icon={FaFolderOpen}

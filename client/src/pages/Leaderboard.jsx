@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaTrophy, FaMedal, FaLock, FaAward, FaUsers, FaExclamationTriangle, FaBullhorn, FaRedo, FaCheck } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../services/api';
 
 const Leaderboard = () => {
   const { hackathonId } = useParams();
@@ -12,6 +12,7 @@ const Leaderboard = () => {
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filter, setFilter] = useState(''); // '', 'Winners', 'Top10'
   
   // User auth state from localStorage
   const [user, setUser] = useState(() => {
@@ -23,9 +24,6 @@ const Leaderboard = () => {
     }
   });
 
-  const token = localStorage.getItem('token');
-  const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
   // Fetch hackathon details and leaderboard data
   const fetchData = async () => {
     setLoading(true);
@@ -33,7 +31,7 @@ const Leaderboard = () => {
     try {
       // 1. Fetch Hackathon details
       try {
-        const hackathonRes = await axios.get(`http://localhost:5099/api/hackathons/${hackathonId}`, { headers });
+        const hackathonRes = await api.get(`/hackathons/${hackathonId}`);
         if (hackathonRes.data?.success) {
           setHackathon(hackathonRes.data.hackathon);
         }
@@ -42,7 +40,9 @@ const Leaderboard = () => {
       }
 
       // 2. Fetch Leaderboard
-      const leaderboardRes = await axios.get(`http://localhost:5099/api/leaderboard/${hackathonId}`, { headers });
+      const leaderboardRes = await api.get(`/leaderboard/${hackathonId}`, {
+        params: { filter }
+      });
       if (leaderboardRes.data?.success) {
         setLeaderboard(leaderboardRes.data.leaderboard || []);
       }
@@ -57,14 +57,14 @@ const Leaderboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [hackathonId]);
+  }, [hackathonId, filter]);
 
   // Actions for Organizers / Admins
   const handleGenerateLeaderboard = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.post(`http://localhost:5099/api/leaderboard/${hackathonId}/generate`, {}, { headers });
+      const res = await api.post(`/leaderboard/${hackathonId}/generate`);
       if (res.data?.success) {
         alert('Leaderboard generated successfully!');
         fetchData();
@@ -81,7 +81,7 @@ const Leaderboard = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.put(`http://localhost:5099/api/leaderboard/${hackathonId}/publish`, {}, { headers });
+      const res = await api.put(`/leaderboard/${hackathonId}/publish`);
       if (res.data?.success) {
         alert('Results published and winners announced successfully!');
         fetchData();
@@ -140,6 +140,34 @@ const Leaderboard = () => {
         {hackathon?.theme && (
           <p className="mt-1 text-sm text-gray-400">Theme: {hackathon.theme}</p>
         )}
+
+        {/* Filters */}
+        <div className="flex gap-1 justify-center mt-6 bg-gray-100 p-1 rounded-xl max-w-xs mx-auto border border-gray-200">
+          <button
+            onClick={() => setFilter('')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              filter === '' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            All Ranks
+          </button>
+          <button
+            onClick={() => setFilter('Winners')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              filter === 'Winners' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Winners
+          </button>
+          <button
+            onClick={() => setFilter('Top10')}
+            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              filter === 'Top10' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Top 10
+          </button>
+        </div>
       </div>
 
       {/* Organizer / Admin Admin Controls Panel */}

@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createTeam,
   getMyTeam,
+  getAllTeams,
   getTeam,
   updateTeam,
   deleteTeam,
@@ -18,7 +19,8 @@ const router = express.Router();
 // Apply protect middleware globally to team endpoints
 router.use(protect);
 
-// CREATE and READ MY routes
+// CREATE, READ ALL and READ MY routes
+router.get('/', getAllTeams);
 router.post('/', authorize('Participant'), createTeam);
 router.get('/my', getMyTeam);
 

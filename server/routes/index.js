@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import authRoutes from './authRoutes.js';
+import userRoutes from './userRoutes.js';
 import hackathonRoutes from './hackathonRoutes.js';
 import registrationRoutes from './registrationRoutes.js';
 import teamRoutes from './teamRoutes.js';
@@ -14,6 +15,9 @@ const router = express.Router();
 
 // Mount Auth routes
 router.use('/auth', authRoutes);
+
+// Mount User routes
+router.use('/users', userRoutes);
 
 // Mount Hackathon routes
 router.use('/hackathons', hackathonRoutes);

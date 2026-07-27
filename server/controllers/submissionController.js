@@ -396,3 +396,136 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
     message: 'Project submission deleted successfully',
   });
 });
+
+/**
+ * @desc    Get all project submissions (with search, filter, sort, pagination)
+ * @route   GET /api/submissions
+ * @access  Private (Authenticated users)
+ */
+export const getAllSubmissions = asyncHandler(async (req, res) => {
+  const { search, status, hackathon, sort, page = 1, limit = 10 } = req.query;
+
+  const queryObj = {};
+
+  // 1. Role-based scoping/filtering
+  if (req.user.role === 'Organizer') {
+    const myHackathons = await Hackathon.find({ createdBy: req.user._id });
+    const myHackathonIds = myHackathons.map((h) => h._id);
+    queryObj.hackathon = { $in: myHackathonIds };
+  } else if (req.user.role === 'Judge') {
+    const myAssignments = await JudgeAssignment.find({ judge: req.user._id });
+    const myAssignedIds = myAssignments.map((a) => a.hackathon);
+    queryObj.hackathon = { $in: myAssignedIds };
+  } else if (req.user.role === 'Participant') {
+    const myTeams = await Team.find({
+      members: req.user._id,
+      status: { $ne: 'Disbanded' },
+    });
+    const myTeamIds = myTeams.map((t) => t._id);
+    queryObj.team = { $in: myTeamIds };
+  }
+
+  // 2. Query overrides/filters from request
+  if (status) {
+    queryObj.status = status;
+  }
+  if (hackathon) {
+    // If Organizer or Judge, make sure requested hackathon is within their scoped list
+    if (queryObj.hackathon) {
+      const allowed = Array.isArray(queryObj.hackathon.$in)
+        ? queryObj.hackathon.$in.some((id) => id.toString() === hackathon)
+        : false;
+      if (allowed) {
+        queryObj.hackathon = hackathon;
+      } else {
+        // Not authorized for this hackathon
+        res.status(403);
+        throw new Error('Access denied: You are not authorized to view submissions for this hackathon');
+      }
+    } else {
+      queryObj.hackathon = hackathon;
+    }
+  }
+
+  // 3. Search parameters
+  if (search) {
+    queryObj.$or = [
+      { projectName: { $regex: search, $options: 'i' } },
+      { problemStatement: { $regex: search, $options: 'i' } },
+      { solution: { $regex: search, $options: 'i' } },
+      { techStack: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  // 4. Sorting
+  let sortQuery = { createdAt: -1 }; // default: latest
+  if (sort === 'oldest') {
+    sortQuery = { createdAt: 1 };
+  } else if (sort === 'alphabetical') {
+    sortQuery = { projectName: 1 };
+  }
+
+  // 5. Pagination
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Import model references dynamically if needed, but they are already imported
+  // Team model is Team, Hackathon is Hackathon, User is User (represented by submittedBy)
+  const totalRecords = await Submission.countDocuments(queryObj);
+  const submissions = await Submission.find(queryObj)
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limitNum)
+    .populate('team', 'teamName leader members')
+    .populate('hackathon', 'title theme mode status')
+    .populate('submittedBy', 'name email');
+
+  res.status(200).json({
+    success: true,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
+    submissions,
+  });
+});
+
+/**
+ * @desc    Update submission status (e.g. Approved, Rejected, Under Review)
+ * @route   PUT /api/submissions/:submissionId/status
+ * @access  Private (Organizer creator, Admin only)
+ */
+export const updateSubmissionStatus = asyncHandler(async (req, res) => {
+  const { submissionId } = req.params;
+  const { status } = req.body;
+
+  if (!status || !['Pending', 'Under Review', 'Approved', 'Rejected'].includes(status)) {
+    res.status(400);
+    throw new Error('Invalid status. Must be Pending, Under Review, Approved, or Rejected');
+  }
+
+  const submission = await Submission.findById(submissionId).populate('hackathon');
+  if (!submission) {
+    res.status(404);
+    throw new Error('Project submission not found');
+  }
+
+  const isAdmin = req.user.role === 'Admin';
+  const isOrganizer =
+    req.user.role === 'Organizer' &&
+    submission.hackathon.createdBy.toString() === req.user._id.toString();
+
+  if (!isAdmin && !isOrganizer) {
+    res.status(403);
+    throw new Error('Forbidden: Only the hackathon organizer or admin can update submission status');
+  }
+
+  submission.status = status;
+  await submission.save();
+
+  res.status(200).json({
+    success: true,
+    message: `Submission status updated to "${status}" successfully`,
+    submission,
+  });
+});

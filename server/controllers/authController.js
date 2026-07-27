@@ -161,3 +161,94 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     },
   });
 });
+
+/**
+ * @desc    Get all users (with search, filter, sort, pagination)
+ * @route   GET /api/users
+ * @access  Private (Admin only)
+ */
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const { search, role, isBlocked, sort, page = 1, limit = 10 } = req.query;
+
+  const queryObj = {};
+
+  // Search by name or email
+  if (search) {
+    queryObj.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  // Filters
+  if (role) {
+    queryObj.role = role;
+  }
+  if (isBlocked !== undefined && isBlocked !== '') {
+    queryObj.isBlocked = isBlocked === 'true';
+  }
+
+  // Sorting
+  let sortQuery = { createdAt: -1 };
+  if (sort === 'oldest') {
+    sortQuery = { createdAt: 1 };
+  } else if (sort === 'alphabetical') {
+    sortQuery = { name: 1 };
+  }
+
+  // Pagination
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalRecords = await User.countDocuments(queryObj);
+  const users = await User.find(queryObj)
+    .select('-password')
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limitNum);
+
+  res.status(200).json({
+    success: true,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
+    users,
+  });
+});
+
+/**
+ * @desc    Toggle block status of a user
+ * @route   PUT /api/users/:userId/block
+ * @access  Private (Admin only)
+ */
+export const toggleBlockUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Prevent blocking self
+  if (user._id.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error('You cannot block your own admin account');
+  }
+
+  user.isBlocked = !user.isBlocked;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: `User ${user.name} has been ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isBlocked: user.isBlocked,
+    },
+  });
+});

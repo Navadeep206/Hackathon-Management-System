@@ -120,21 +120,32 @@ export const getMyRegistrations = asyncHandler(async (req, res) => {
     throw new Error('Forbidden: Only participants can view their own registrations');
   }
 
-  const { status } = req.query;
+  const { status, page = 1, limit = 10 } = req.query;
   const queryObj = { participant: req.user._id };
 
   if (status) {
     queryObj.status = status;
   }
 
-  const registrations = await Registration.find(queryObj).populate(
-    'hackathon',
-    'title theme mode status startDate endDate registrationDeadline'
-  );
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalRecords = await Registration.countDocuments(queryObj);
+  const registrations = await Registration.find(queryObj)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitNum)
+    .populate(
+      'hackathon',
+      'title theme mode status startDate endDate registrationDeadline'
+    );
 
   res.status(200).json({
     success: true,
-    count: registrations.length,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
     registrations,
   });
 });
@@ -146,7 +157,7 @@ export const getMyRegistrations = asyncHandler(async (req, res) => {
  */
 export const getHackathonRegistrations = asyncHandler(async (req, res) => {
   const { hackathonId } = req.params;
-  const { status } = req.query;
+  const { status, page = 1, limit = 10 } = req.query;
 
   if (!mongoose.Types.ObjectId.isValid(hackathonId)) {
     res.status(400);
@@ -177,14 +188,22 @@ export const getHackathonRegistrations = asyncHandler(async (req, res) => {
     queryObj.status = status;
   }
 
-  const registrations = await Registration.find(queryObj).populate(
-    'participant',
-    'name email role profileImage'
-  );
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalRecords = await Registration.countDocuments(queryObj);
+  const registrations = await Registration.find(queryObj)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitNum)
+    .populate('participant', 'name email role profileImage');
 
   res.status(200).json({
     success: true,
-    count: registrations.length,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
     registrations,
   });
 });

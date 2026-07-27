@@ -208,13 +208,24 @@ export const getSubmissionReviews = asyncHandler(async (req, res) => {
     throw new Error('Access denied: You are not authorized to view reviews for this submission');
   }
 
+  const { page = 1, limit = 10 } = req.query;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const totalRecords = await Review.countDocuments(query);
   const reviews = await Review.find(query)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitNum)
     .populate('judge', 'name email')
     .populate('submission', 'projectName');
 
   res.status(200).json({
     success: true,
-    count: reviews.length,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
     reviews,
   });
 });
@@ -225,13 +236,26 @@ export const getSubmissionReviews = asyncHandler(async (req, res) => {
  * @access  Private (Judge only)
  */
 export const getMyReviews = asyncHandler(async (req, res) => {
-  const reviews = await Review.find({ judge: req.user._id })
+  const { page = 1, limit = 10 } = req.query;
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const limitNum = Math.max(1, parseInt(limit) || 10);
+  const skip = (pageNum - 1) * limitNum;
+
+  const queryObj = { judge: req.user._id };
+
+  const totalRecords = await Review.countDocuments(queryObj);
+  const reviews = await Review.find(queryObj)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limitNum)
     .populate('submission', 'projectName')
     .populate('hackathon', 'title theme');
 
   res.status(200).json({
     success: true,
-    count: reviews.length,
+    page: pageNum,
+    totalPages: Math.ceil(totalRecords / limitNum),
+    totalRecords,
     reviews,
   });
 });
