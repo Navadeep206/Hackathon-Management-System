@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+@theme {
+  --color-indigo-650: #493ee0;
+  --color-indigo-750: #3d34ab;
+  --color-purple-650: #7431e3;
+}
