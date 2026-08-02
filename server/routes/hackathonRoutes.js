@@ -12,22 +12,19 @@ import { upload } from '../middleware/uploadMiddleware.js';
 
 const router = express.Router();
 
-// Apply protect middleware to all hackathon endpoints
-router.use(protect);
-
 // CREATE endpoint (Organizer only)
-router.post('/', authorize('Organizer'), upload.single('bannerImage'), createHackathon);
+router.post('/', protect, authorize('Organizer'), upload.single('bannerImage'), createHackathon);
 
-// READ ALL endpoint (Admin, Organizer, Participant, Judge - handled by protect)
+// READ ALL endpoint (Publicly readable)
 router.get('/', getAllHackathons);
 
-// READ SINGLE endpoint
+// READ SINGLE endpoint (Publicly readable)
 router.get('/:id', getHackathon);
 
 // UPDATE endpoint (Organizer owner only)
-router.put('/:id', authorize('Organizer'), upload.single('bannerImage'), updateHackathon);
+router.put('/:id', protect, authorize('Organizer'), upload.single('bannerImage'), updateHackathon);
 
 // DELETE endpoint (Organizer owner only)
-router.delete('/:id', authorize('Organizer'), deleteHackathon);
+router.delete('/:id', protect, authorize('Organizer'), deleteHackathon);
 
 export default router;
