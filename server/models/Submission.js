@@ -86,8 +86,5 @@ const submissionSchema = new mongoose.Schema(
   }
 );
 
-// Explicit unique index on team
-submissionSchema.index({ team: 1 }, { unique: true });
-
 const Submission = mongoose.model('Submission', submissionSchema);
 export default Submission;
