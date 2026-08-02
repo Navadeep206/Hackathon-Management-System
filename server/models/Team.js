@@ -50,7 +50,7 @@ const teamSchema = new mongoose.Schema(
 teamSchema.index({ hackathon: 1, teamName: 1 }, { unique: true });
 
 // Pre-validate hook to generate unique invite code if not provided
-teamSchema.pre('validate', function (next) {
+teamSchema.pre('validate', function () {
   if (!this.inviteCode) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = 'JOIN-';
@@ -59,7 +59,6 @@ teamSchema.pre('validate', function (next) {
     }
     this.inviteCode = code;
   }
-  next();
 });
 
 const Team = mongoose.model('Team', teamSchema);

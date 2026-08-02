@@ -135,7 +135,7 @@ const Signup = () => {
                   className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-50 transition-all ${
                     errors.name ? 'border-red-300 bg-red-50/20' : 'border-gray-200'
                   }`}
-                  placeholder="John Doe"
+                  placeholder="Enter your name"
                 />
               </div>
               {errors.name && (
@@ -162,7 +162,7 @@ const Signup = () => {
                   className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-50 transition-all ${
                     errors.email ? 'border-red-300 bg-red-50/20' : 'border-gray-200'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder="Enter your email"
                 />
               </div>
               {errors.email && (
@@ -215,7 +215,7 @@ const Signup = () => {
                   className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-50 transition-all ${
                     errors.password ? 'border-red-300 bg-red-50/20' : 'border-gray-200'
                   }`}
-                  placeholder="Minimum 8 characters"
+                  placeholder="Enter your password"
                 />
               </div>
               {errors.password && (

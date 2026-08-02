@@ -90,7 +90,7 @@ const reviewSchema = new mongoose.Schema(
 reviewSchema.index({ judge: 1, submission: 1 }, { unique: true });
 
 // Auto calculate totalScore before validating
-reviewSchema.pre('validate', function (next) {
+reviewSchema.pre('validate', function () {
   this.totalScore =
     (this.innovation || 0) +
     (this.technicalComplexity || 0) +
@@ -99,7 +99,6 @@ reviewSchema.pre('validate', function (next) {
     (this.scalability || 0) +
     (this.documentation || 0) +
     (this.presentation || 0);
-  next();
 });
 
 const Review = mongoose.model('Review', reviewSchema);

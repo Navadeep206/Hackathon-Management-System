@@ -92,10 +92,10 @@ const hackathonSchema = new mongoose.Schema(
 );
 
 // Custom date validation before saving
-hackathonSchema.pre('validate', function (next) {
+hackathonSchema.pre('validate', function () {
   // If startDate, registrationDeadline or endDate are missing, let the Mongoose validation fail normally
   if (!this.startDate || !this.registrationDeadline || !this.endDate) {
-    return next();
+    return;
   }
 
   // Registration deadline must be before Start Date
@@ -111,7 +111,10 @@ hackathonSchema.pre('validate', function (next) {
     this.invalidate('endDate', 'End date must be after the start date');
   }
 
-  next();
+  // Auto-transition status to 'Registration Open' if it is 'Upcoming' and registration deadline is in the future
+  if ((!this.status || this.status === 'Upcoming') && new Date() < new Date(this.registrationDeadline)) {
+    this.status = 'Registration Open';
+  }
 });
 
 const Hackathon = mongoose.model('Hackathon', hackathonSchema);

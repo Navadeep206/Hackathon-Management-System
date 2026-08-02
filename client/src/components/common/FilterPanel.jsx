@@ -2,12 +2,15 @@ import React from 'react';
 
 const FilterPanel = ({ filters = [], activeFilters = {}, onFilterChange, onReset }) => {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm space-y-4">
-      <div className="flex justify-between items-center pb-3 border-b border-gray-150">
-        <h4 className="text-sm font-bold text-gray-900">Search Filters</h4>
+    <div className="sticky top-24 space-y-4 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-xl shadow-slate-200/70 backdrop-blur">
+      <div className="flex justify-between items-center pb-3 border-b border-slate-100">
+        <div>
+          <p className="text-[10px] font-black uppercase text-cyan-600">Refine board</p>
+          <h4 className="text-sm font-black text-slate-950">Search Filters</h4>
+        </div>
         <button
           onClick={onReset}
-          className="text-xs text-indigo-600 hover:underline font-bold transition-colors cursor-pointer"
+          className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-slate-600 transition-colors hover:bg-cyan-50 hover:text-cyan-700 cursor-pointer"
         >
           Reset All
         </button>
@@ -22,7 +25,7 @@ const FilterPanel = ({ filters = [], activeFilters = {}, onFilterChange, onReset
             <select
               value={activeFilters[filter.name] || ''}
               onChange={(e) => onFilterChange(filter.name, e.target.value)}
-              className="w-full text-sm rounded-lg border border-gray-200 p-2 text-gray-700 bg-gray-50 font-medium focus:ring-1 focus:ring-indigo-500 focus:outline-none transition-all"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700 transition-all focus:border-cyan-400 focus:bg-white focus:outline-none focus:ring-4 focus:ring-cyan-100"
             >
               <option value="">All {filter.label}</option>
               {filter.options.map((opt) => {

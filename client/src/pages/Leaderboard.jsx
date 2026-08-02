@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaTrophy, FaMedal, FaLock, FaAward, FaUsers, FaExclamationTriangle, FaBullhorn, FaRedo, FaCheck } from 'react-icons/fa';
+import { FaTrophy, FaMedal, FaLock, FaAward, FaUsers, FaExclamationTriangle, FaBullhorn, FaRedo, FaCheck, FaChevronRight } from 'react-icons/fa';
 import api from '../services/api';
+import Loader from '../components/common/Loader';
 
 const Leaderboard = () => {
   const { hackathonId } = useParams();
@@ -14,6 +15,9 @@ const Leaderboard = () => {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(''); // '', 'Winners', 'Top10'
   
+  const [hackathonsList, setHackathonsList] = useState([]);
+  const [hackListLoading, setHackListLoading] = useState(false);
+
   // User auth state from localStorage
   const [user, setUser] = useState(() => {
     try {
@@ -26,6 +30,7 @@ const Leaderboard = () => {
 
   // Fetch hackathon details and leaderboard data
   const fetchData = async () => {
+    if (!hackathonId) return;
     setLoading(true);
     setError(null);
     try {
@@ -56,8 +61,31 @@ const Leaderboard = () => {
   };
 
   useEffect(() => {
-    fetchData();
+    if (hackathonId) {
+      fetchData();
+    }
   }, [hackathonId, filter]);
+
+  useEffect(() => {
+    if (!hackathonId) {
+      const fetchAllHackathons = async () => {
+        setHackListLoading(true);
+        try {
+          const res = await api.get('/hackathons');
+          if (res.data?.success) {
+            setHackathonsList(res.data.hackathons || []);
+          }
+        } catch (err) {
+          console.error(err);
+          setError('Failed to fetch hackathons list.');
+        } finally {
+          setHackListLoading(false);
+          setLoading(false);
+        }
+      };
+      fetchAllHackathons();
+    }
+  }, [hackathonId]);
 
   // Actions for Organizers / Admins
   const handleGenerateLeaderboard = async () => {
@@ -106,6 +134,55 @@ const Leaderboard = () => {
   if (podiumWinners[1]) orderedPodium.push(podiumWinners[1]); // 2nd Place
   if (podiumWinners[0]) orderedPodium.push(podiumWinners[0]); // 1st Place
   if (podiumWinners[2]) orderedPodium.push(podiumWinners[2]); // 3rd Place
+
+  if (!hackathonId) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 min-h-screen">
+        <div className="text-center mb-10">
+          <span className="bg-indigo-50 text-indigo-700 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider">
+            Podium Leaderboards
+          </span>
+          <h1 className="mt-3 text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
+            Select an Event Board
+          </h1>
+          <p className="mt-2 text-sm text-slate-500 max-w-xl mx-auto">
+            Choose a completed hackathon campaign to inspect project scores and podium standings.
+          </p>
+        </div>
+
+        {hackListLoading ? (
+          <div className="flex items-center justify-center p-12">
+            <Loader />
+          </div>
+        ) : hackathonsList.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-3xl p-8 text-center shadow-sm">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">No hackathons are available.</p>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {hackathonsList.map((h) => (
+              <div
+                key={h._id}
+                onClick={() => navigate(`/leaderboard/${h._id}`)}
+                className="bg-white border border-slate-200 hover:border-indigo-500 rounded-2xl p-6 cursor-pointer shadow-sm hover:shadow-md transition-all flex justify-between items-center group"
+              >
+                <div>
+                  <span className="text-[9px] font-black text-indigo-650 uppercase tracking-wider">{h.theme}</span>
+                  <h3 className="text-base font-bold text-slate-950 mt-1 leading-snug group-hover:text-indigo-650 transition-colors">
+                    {h.title}
+                  </h3>
+                  <span className="inline-block mt-2 text-[10px] font-semibold text-slate-400">
+                    Status: <strong className="text-slate-600 uppercase">{h.status}</strong>
+                  </span>
+                </div>
+                <FaChevronRight className="text-slate-350 group-hover:text-indigo-600 transition-colors text-xs shrink-0" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-screen">

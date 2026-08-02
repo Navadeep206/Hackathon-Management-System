@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { FaEnvelope, FaLock, FaSignInAlt } from 'react-icons/fa';
 import { Toast } from '../components/common/ErrorMessage';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,11 +51,17 @@ const Login = () => {
 
         setTimeout(() => {
           const role = res.data.user.role;
-          if (role === 'Admin') navigate('/admin/dashboard');
-          else if (role === 'Organizer') navigate('/organizer/dashboard');
-          else if (role === 'Participant') navigate('/participant/dashboard');
-          else if (role === 'Judge') navigate('/judge/dashboard');
-          else navigate('/');
+          const from = location.state?.from?.pathname;
+
+          if (from) {
+            navigate(from, { replace: true });
+          } else {
+            if (role === 'Admin') navigate('/admin/dashboard');
+            else if (role === 'Organizer') navigate('/organizer/dashboard');
+            else if (role === 'Participant') navigate('/participant/dashboard');
+            else if (role === 'Judge') navigate('/judge/dashboard');
+            else navigate('/');
+          }
           
           // Trigger a refresh event for components like Navbar to reload state
           window.dispatchEvent(new Event('storage'));
@@ -113,11 +120,11 @@ const Login = () => {
                   className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-50 transition-all ${
                     errors.email ? 'border-red-300 bg-red-50/20' : 'border-gray-200'
                   }`}
-                  placeholder="you@example.com"
+                  placeholder="Enter your email"
                 />
               </div>
               {errors.email && (
-                <p className="text-xs font-semibold text-red-600 mt-1">{errors.email}</p>
+                <p className="text-xs font-semibold text-red-655 mt-1">{errors.email}</p>
               )}
             </div>
 
@@ -137,10 +144,10 @@ const Login = () => {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-50 transition-all ${
+                  className={`w-full pl-10 pr-3 py-2.5 rounded-xl border text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium bg-gray-55 transition-all ${
                     errors.password ? 'border-red-300 bg-red-50/20' : 'border-gray-200'
                   }`}
-                  placeholder="••••••••"
+                  placeholder="Enter your password"
                 />
               </div>
               {errors.password && (

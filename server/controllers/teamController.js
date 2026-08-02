@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Team from '../models/Team.js';
 import Hackathon from '../models/Hackathon.js';
 import Registration from '../models/Registration.js';
+import User from '../models/User.js';
 import asyncHandler from '../utils/asyncHandler.js';
 
 /**
@@ -512,5 +513,150 @@ export const transferLeadership = asyncHandler(async (req, res) => {
     success: true,
     message: 'Leadership transferred successfully',
     team,
+  });
+});
+
+/**
+ * @desc    Get list of participants eligible to join the hackathon team
+ * @route   GET /api/teams/:teamId/eligible-participants
+ * @access  Private (Participant only)
+ */
+export const getEligibleParticipants = asyncHandler(async (req, res) => {
+  const { teamId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(teamId)) {
+    res.status(400);
+    throw new Error('Invalid team ID');
+  }
+
+  const team = await Team.findById(teamId);
+  if (!team) {
+    res.status(404);
+    throw new Error('Team not found');
+  }
+
+  // Get all approved registrations for this hackathon
+  const registrations = await Registration.find({
+    hackathon: team.hackathon,
+    status: 'Approved',
+  }).populate('participant', 'name email role');
+
+  // Get all active (non-disbanded) teams for this hackathon
+  const teams = await Team.find({
+    hackathon: team.hackathon,
+    status: { $ne: 'Disbanded' },
+  });
+
+  // Collect IDs of participants who are already in a team (either as leader or member)
+  const usersInTeams = new Set();
+  teams.forEach((t) => {
+    usersInTeams.add(t.leader.toString());
+    t.members.forEach((m) => usersInTeams.add(m.toString()));
+  });
+
+  // Filter registrations to find participants who are not in any team
+  const eligible = registrations
+    .map((r) => r.participant)
+    .filter((user) => user && !usersInTeams.has(user._id.toString()));
+
+  res.status(200).json({
+    success: true,
+    count: eligible.length,
+    participants: eligible,
+  });
+});
+
+/**
+ * @desc    Add a member to the team directly
+ * @route   POST /api/teams/:teamId/add-member
+ * @access  Private (Team leader only)
+ */
+export const addMember = asyncHandler(async (req, res) => {
+  const { teamId } = req.params;
+  const { memberId } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(teamId)) {
+    res.status(400);
+    throw new Error('Invalid team ID');
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(memberId)) {
+    res.status(400);
+    throw new Error('Invalid member ID');
+  }
+
+  const team = await Team.findById(teamId);
+  if (!team) {
+    res.status(404);
+    throw new Error('Team not found');
+  }
+
+  // Verify that req.user is the team leader
+  const isLeader = team.leader.toString() === req.user._id.toString();
+  if (!isLeader) {
+    res.status(403);
+    throw new Error('Forbidden: Only the team leader can add members directly');
+  }
+
+  if (team.status !== 'Active') {
+    res.status(400);
+    throw new Error(`Cannot add member. Current team status is ${team.status}`);
+  }
+
+  // Verify target user exists and is a participant
+  const targetUser = await User.findById(memberId);
+  if (!targetUser) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  if (targetUser.role !== 'Participant') {
+    res.status(400);
+    throw new Error('Only users with the Participant role can be added to teams');
+  }
+
+  // Verify target user is registered and approved for this hackathon
+  const reg = await Registration.findOne({
+    participant: memberId,
+    hackathon: team.hackathon,
+    status: 'Approved',
+  });
+
+  if (!reg) {
+    res.status(400);
+    throw new Error('Target user does not have an Approved registration for this hackathon');
+  }
+
+  // Verify target user is not already in a team (leader or member) for this hackathon
+  const inTeam = await Team.findOne({
+    hackathon: team.hackathon,
+    $or: [{ leader: memberId }, { members: memberId }],
+    status: { $ne: 'Disbanded' },
+  });
+
+  if (inTeam) {
+    res.status(400);
+    throw new Error('Target user already belongs to a team for this hackathon');
+  }
+
+  // Check team capacity
+  if (team.members.length >= team.maxMembers) {
+    res.status(400);
+    throw new Error('Team capacity has been reached (team is full)');
+  }
+
+  team.members.push(memberId);
+  await team.save();
+
+  // Populate members
+  const populatedTeam = await Team.findById(teamId)
+    .populate('leader', 'name email role')
+    .populate('members', 'name email role')
+    .populate('hackathon', 'title');
+
+  res.status(200).json({
+    success: true,
+    message: 'Member added to team successfully',
+    team: populatedTeam,
   });
 });
