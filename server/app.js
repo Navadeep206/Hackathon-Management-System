@@ -25,6 +25,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
   'https://hackathon-management-system-seven.vercel.app',
+  'https://hackathon-management-system-pi.vercel.app',
 ];
 
 const isLocalDevOrigin = (origin) => {
@@ -64,7 +65,7 @@ app.use(
         return;
       }
 
-      callback(new Error(`CORS blocked origin: ${origin}`));
+      callback(null, false);
     },
     credentials: true,
   })
