@@ -24,6 +24,7 @@ const allowedOrigins = [
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
+  'https://hackathon-management-system-seven.vercel.app',
 ];
 
 const isLocalDevOrigin = (origin) => {
@@ -35,11 +36,30 @@ const isLocalDevOrigin = (origin) => {
   }
 };
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+
+  if (allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
+    return true;
+  }
+
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname.endsWith('.vercel.app') || hostname.endsWith('.onrender.com')) {
+      return true;
+    }
+  } catch {
+    return false;
+  }
+
+  return false;
+};
+
 // CORS configuration - supports local Vite dev ports and comma-separated CLIENT_URL values.
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
+      if (isAllowedOrigin(origin)) {
         callback(null, true);
         return;
       }
